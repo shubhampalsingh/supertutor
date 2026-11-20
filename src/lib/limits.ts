@@ -4,11 +4,11 @@ import { prisma } from "@/lib/prisma";
 
 // Daily free-tier limits
 export const LIMITS = {
-  user: { chatMessages: 30, quizzes: 5, decks: 5, solves: 10 },
-  guest: { chatMessages: 5, quizzes: 1, decks: 1, solves: 2 },
+  user: { chatMessages: 30, quizzes: 5, decks: 5, solves: 10, plans: 5, uploads: 20 },
+  guest: { chatMessages: 5, quizzes: 1, decks: 1, solves: 2, plans: 0, uploads: 0 },
 } as const;
 
-export type UsageKind = "chatMessages" | "quizzes" | "decks" | "solves";
+export type UsageKind = "chatMessages" | "quizzes" | "decks" | "solves" | "plans" | "uploads";
 
 export function todayUTC(): string {
   return new Date().toISOString().slice(0, 10);
@@ -45,7 +45,7 @@ function sign(payload: string): string {
 type GuestUsage = { d: string } & Record<UsageKind, number>;
 
 function emptyUsage(): GuestUsage {
-  return { d: todayUTC(), chatMessages: 0, quizzes: 0, decks: 0, solves: 0 };
+  return { d: todayUTC(), chatMessages: 0, quizzes: 0, decks: 0, solves: 0, plans: 0, uploads: 0 };
 }
 
 export async function readGuestUsage(): Promise<GuestUsage> {

@@ -7,11 +7,12 @@ export async function Nav() {
 
   return (
     <nav className="sticky top-0 z-20 border-b-2 border-grape/10 bg-cream/80 backdrop-blur">
-      <div className="mx-auto flex max-w-5xl items-center gap-1 px-4 py-3 text-sm font-bold sm:gap-2">
-        <Link href="/" className="display mr-2 flex items-center gap-1 text-xl">
+      <div className="mx-auto flex max-w-5xl items-center gap-1 overflow-x-auto whitespace-nowrap px-4 py-3 text-sm font-bold sm:gap-2">
+        <Link href="/" className="display mr-2 flex shrink-0 items-center gap-1 text-xl">
           <span className="animate-bounce-slow inline-block">🦸</span>
           <span className="gradient-text hidden sm:inline">SuperTutor</span>
         </Link>
+        <Link href="/plan" className="rounded-full px-2 py-1.5 hover:bg-grape/10 sm:px-3">🗺️ Plan</Link>
         <Link href="/tutor" className="rounded-full px-2 py-1.5 hover:bg-grape/10 sm:px-3">💬 Tutor</Link>
         <Link href="/solve" className="rounded-full px-2 py-1.5 hover:bg-grape/10 sm:px-3">📸 Solve</Link>
         <Link href="/quiz" className="rounded-full px-2 py-1.5 hover:bg-grape/10 sm:px-3">🎯 Quiz</Link>

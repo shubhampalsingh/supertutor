@@ -12,6 +12,13 @@ type Progress = {
   today: { chatMessages: number; quizzes: number; decks: number; solves: number };
   limits: { chatMessages: number; quizzes: number; decks: number; solves: number };
   recentAttempts: { topic: string; score: number; total: number; at: string }[];
+  learning: {
+    topics: number;
+    mastered: number;
+    avgMastery: number | null;
+    gaps: { planId: string; topicId: string; title: string; goal: string; mastery: number; weakConcepts: string[] }[];
+    reviewsDue: { planId: string; topicId: string; title: string; goal: string }[];
+  };
 };
 
 export default function DashboardPage() {
@@ -88,6 +95,58 @@ export default function DashboardPage() {
           ✨ {data.counts.dueCards} flashcards are ready for review — keep that streak alive!
         </Link>
       )}
+
+      <div className="card mt-6 p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold">🗺️ Learning plans</h2>
+          <Link href="/plan" className="text-sm font-bold text-grape underline">Open plans</Link>
+        </div>
+        {data.learning.topics === 0 ? (
+          <p className="mt-2 text-ink/50">
+            No plan yet.{" "}
+            <Link href="/plan" className="font-bold text-grape underline">Build one from your goal</Link>{" "}
+            to get a roadmap, lessons from your notes and knowledge-gap tracking.
+          </p>
+        ) : (
+          <>
+            <p className="mt-2 text-ink/70">
+              {data.learning.mastered}/{data.learning.topics} topics mastered
+              {data.learning.avgMastery !== null && ` · average mastery ${Math.round(data.learning.avgMastery * 100)}%`}
+            </p>
+            {data.learning.reviewsDue.length > 0 && (
+              <div className="mt-4">
+                <h3 className="font-bold">⏰ Due for revision</h3>
+                <ul className="mt-1 space-y-1 text-sm">
+                  {data.learning.reviewsDue.map((r) => (
+                    <li key={r.topicId}>
+                      <Link href={`/plan/${r.planId}/topic/${r.topicId}?mode=quiz`} className="font-bold text-grape underline">{r.title}</Link>
+                      <span className="text-ink/50"> · {r.goal}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div className="mt-4">
+              <h3 className="font-bold">🧩 Knowledge gaps</h3>
+              {data.learning.gaps.length === 0 ? (
+                <p className="text-sm text-ink/50">None spotted yet. Gaps appear here after topic quizzes.</p>
+              ) : (
+                <ul className="mt-1 space-y-2">
+                  {data.learning.gaps.map((g) => (
+                    <li key={g.topicId} className="rounded-2xl border-2 border-grape/10 px-4 py-2 text-sm">
+                      <div className="flex justify-between gap-2">
+                        <Link href={`/plan/${g.planId}/topic/${g.topicId}?mode=reteach`} className="font-bold text-grape underline">{g.title}</Link>
+                        <span className="shrink-0 font-bold text-sunny">{Math.round(g.mastery * 100)}%</span>
+                      </div>
+                      {g.weakConcepts.length > 0 && <div className="text-ink/60">{g.weakConcepts.join(", ")}</div>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </>
+        )}
+      </div>
 
       <div className="card mt-6 p-6">
         <h2 className="text-xl font-bold">Today&apos;s free usage</h2>

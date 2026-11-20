@@ -2,6 +2,13 @@ import Link from "next/link";
 
 const features = [
   {
+    href: "/plan",
+    emoji: "🗺️",
+    title: "Personal Learning Plan",
+    desc: "Set a goal and deadline, upload your notes, and get a roadmap that adapts as you learn — with lessons that cite your own materials.",
+    color: "from-sky-500/10 to-sky-500/5",
+  },
+  {
     href: "/tutor",
     emoji: "💬",
     title: "AI Chat Tutor",

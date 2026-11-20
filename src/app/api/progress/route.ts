@@ -11,7 +11,7 @@ export async function GET() {
   }
   const userId = session.user.id;
 
-  const [user, usage, chatCount, quizCount, deckCount, dueCards, attempts] =
+  const [user, usage, chatCount, quizCount, deckCount, dueCards, attempts, topics] =
     await Promise.all([
       prisma.user.findUnique({ where: { id: userId } }),
       prisma.usageDay.findUnique({
@@ -29,7 +29,28 @@ export async function GET() {
         take: 10,
         include: { quiz: { select: { topic: true } } },
       }),
+      prisma.planTopic.findMany({
+        where: { plan: { userId } },
+        select: {
+          id: true, title: true, status: true, mastery: true, attempts: true,
+          weakConcepts: true, nextReviewAt: true, planId: true, plan: { select: { goal: true } },
+        },
+      }),
     ]);
+
+  const now = new Date();
+  const gaps = topics
+    .filter((t) => t.status === "revise" || (Array.isArray(t.weakConcepts) && t.weakConcepts.length > 0))
+    .sort((a, b) => a.mastery - b.mastery)
+    .slice(0, 8)
+    .map((t) => ({
+      planId: t.planId, topicId: t.id, title: t.title, goal: t.plan.goal, mastery: t.mastery,
+      weakConcepts: (t.weakConcepts as string[]).slice(0, 4),
+    }));
+  const reviewsDue = topics
+    .filter((t) => t.status === "mastered" && t.nextReviewAt && t.nextReviewAt <= now)
+    .map((t) => ({ planId: t.planId, topicId: t.id, title: t.title, goal: t.plan.goal }));
+  const assessed = topics.filter((t) => t.attempts > 0);
 
   return Response.json({
     signedIn: true,
@@ -44,6 +65,13 @@ export async function GET() {
       solves: usage?.solves ?? 0,
     },
     limits: LIMITS.user,
+    learning: {
+      topics: topics.length,
+      mastered: topics.filter((t) => t.status === "mastered").length,
+      avgMastery: assessed.length ? assessed.reduce((n, t) => n + t.mastery, 0) / assessed.length : null,
+      gaps,
+      reviewsDue,
+    },
     recentAttempts: attempts.map((a) => ({
       topic: a.quiz.topic,
       score: a.score,

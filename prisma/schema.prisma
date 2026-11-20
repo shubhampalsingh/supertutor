@@ -25,6 +25,9 @@ model User {
   quizzes  Quiz[]
   decks    Deck[]
   usage    UsageDay[]
+  plans     LearningPlan[]
+  materials Material[]
+  feedback  LearnerFeedback[]
 }
 
 model Account {
@@ -93,6 +96,7 @@ model ChatMessage {
 model Quiz {
   id         String        @id @default(cuid())
   userId     String
+  topicId    String?
   topic      String
   difficulty String        @default("medium")
   questions  Json
@@ -151,8 +155,92 @@ model UsageDay {
   quizzes      Int    @default(0)
   decks        Int    @default(0)
   solves       Int    @default(0)
+  plans        Int    @default(0)
+  uploads      Int    @default(0)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, date])
+}
+
+// ---------- Week 2: agentic learning loop ----------
+
+model LearningPlan {
+  id           String    @id @default(cuid())
+  userId       String
+  goal         String
+  level        String    @default("beginner") // learner's self-reported level
+  hoursPerWeek Int       @default(3)
+  targetDate   DateTime?
+  style        String    @default("examples") // preferred explanation style
+  summary      String    @default("") @db.Text
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topics    PlanTopic[]
+  materials Material[]
+
+  @@index([userId, updatedAt])
+}
+
+model PlanTopic {
+  id            String    @id @default(cuid())
+  planId        String
+  order         Int
+  title         String
+  summary       String    @db.Text
+  objectives    Json // string[]
+  estMinutes    Int       @default(30)
+  milestone     String?
+  status        String    @default("todo") // todo | learning | mastered | revise
+  mastery       Float     @default(0) // 0..1 estimate from assessments
+  attempts      Int       @default(0)
+  weakConcepts  Json      @default("[]") // string[] recurring mistakes
+  nextReviewAt  DateTime?
+  lastStudiedAt DateTime?
+
+  plan LearningPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId, order])
+}
+
+model Material {
+  id        String   @id @default(cuid())
+  userId    String
+  planId    String?
+  title     String
+  kind      String // pdf | text
+  chars     Int
+  createdAt DateTime @default(now())
+
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan   LearningPlan?   @relation(fields: [planId], references: [id], onDelete: Cascade)
+  chunks MaterialChunk[]
+
+  @@index([userId, planId])
+}
+
+model MaterialChunk {
+  id         String @id @default(cuid())
+  materialId String
+  idx        Int
+  page       Int?
+  content    String @db.Text
+
+  material Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  @@index([materialId, idx])
+}
+
+model LearnerFeedback {
+  id        String   @id @default(cuid())
+  userId    String
+  topicId   String?
+  kind      String // error | unclear | helpful | not_helpful
+  note      String?  @db.Text
+  excerpt   String?  @db.Text
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

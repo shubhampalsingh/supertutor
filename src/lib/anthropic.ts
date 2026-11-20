@@ -1,8 +1,14 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-// Default to Claude Opus 4.8; override with ANTHROPIC_MODEL if you want a
-// cheaper model (e.g. claude-haiku-4-5) for high-volume traffic.
-export const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-4-8";
+// Default to Claude Opus 5.5; override with ANTHROPIC_MODEL if you want a
+// cheaper model (e.g. claude-sonnet-5-5) for high-volume traffic.
+export const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-5-5";
+
+// If the main model declines a request (stop_reason "refusal"), the API
+// re-runs it on this model inside the same call. Used by the agents in
+// src/lib/agents via the beta Messages endpoint.
+export const FALLBACK_MODEL = process.env.ANTHROPIC_FALLBACK_MODEL || "claude-opus-4-8";
+export const FALLBACK_BETA = "server-side-fallback-2026-06-01";
 
 let client: Anthropic | null = null;
 
